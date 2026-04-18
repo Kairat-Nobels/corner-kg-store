@@ -1,54 +1,75 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RotatingLines } from 'react-loader-spinner';
-import RecordsTable from '../../Tables/RecordsTable/RecordsTable';
-import DeleteModal from '../../components/DeleteModalNew/DeleteModalNew';
-import EditOrderModal from '../../components/EditOrderModal/EditOrderModal';
-import 'rsuite/dist/rsuite.min.css'
-import { deleteOrder, updateOrder } from '../../store/slices/ordersSlice';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RotatingLines } from "react-loader-spinner";
+import RecordsTable from "../../Tables/RecordsTable/RecordsTable";
+import DeleteModal from "../../components/DeleteModalNew/DeleteModalNew";
+import EditOrderModal from "../../components/EditOrderModal/EditOrderModal";
+import "rsuite/dist/rsuite.min.css";
+import { deleteOrder, updateOrder } from "../../store/slices/ordersSlice";
 
 const statusList = [
-  { label: "Баары", value: "all" },
-  { label: "Заказ кабыл алынды", value: "Заказано" },
-  { label: "Төлөндү", value: "Оплачено" },
-  { label: "Жеткирилди", value: "Доставлено" },
-  { label: "Жокко чыгарылды", value: "Отменен" }
+  { label: "Все", value: "all" },
+  { label: "Новый", value: "Новый" },
+  { label: "Подтвержден", value: "Подтвержден" },
+  { label: "Оплачен", value: "Оплачен" },
+  { label: "Доставлен", value: "Доставлен" },
+  { label: "Отменен", value: "Отменен" },
 ];
 
 const OrdersPage = () => {
   const dispatch = useDispatch();
-  const { orders, loading, error } = useSelector((state) => state.ordersReducer);
+  const { orders, loading, error } = useSelector(
+    (state) => state.ordersReducer
+  );
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const handleEdit = (order) => setEditTarget(order);
+  const handleEdit = (order) => {
+    setEditTarget(order);
+  };
 
   const handleEditSave = (updated) => {
-    dispatch(updateOrder({
-      id: updated.id,
-      updatedData: {
-        status: updated.status,
-        address: updated.address
-      }
-    }));
+    dispatch(
+      updateOrder({
+        id: updated.id,
+        updatedData: {
+          status: updated.status,
+          address: updated.address,
+          comment: updated.comment,
+          phone: updated.phone,
+          name: updated.name,
+        },
+      })
+    );
     setEditTarget(null);
   };
 
-  return (
-    <div className='adminRecords'>
-      <div className='adminRecordHeader d-flex justify-content-between align-items-center mb-3'>
-        <h3>Заказдар</h3>
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter((order) => order.status === statusFilter);
 
-        <div className="d-flex gap-2 flex-wrap">
-          {statusList.map(s => (
+  return (
+    <div className="adminRecords">
+      <div className="adminHeader">
+        <h3>Заказы</h3>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          {statusList.map((status) => (
             <button
-              key={s.value}
-              className={`btn btn-sm ${statusFilter === s.value ? 'btnActive' : 'btn-outline'}`}
-              onClick={() => setStatusFilter(s.value)}
+              key={status.value}
+              className={statusFilter === status.value ? "btnActive" : "btn-outline"}
+              onClick={() => setStatusFilter(status.value)}
             >
-              {s.label}
+              {status.label}
             </button>
           ))}
         </div>
@@ -57,17 +78,13 @@ const OrdersPage = () => {
       {loading ? (
         <div className="center">
           <RotatingLines strokeColor="grey" width="60" />
-          <p>Жүктөлүүдө...</p>
+          <p>Загрузка...</p>
         </div>
       ) : error ? (
-        <h3>Ката: {error}</h3>
+        <h3>Ошибка: {error}</h3>
       ) : (
         <RecordsTable
-          data={
-            statusFilter === "all"
-              ? orders
-              : orders.filter(order => order.status === statusFilter)
-          }
+          data={filteredOrders}
           onDelete={setDeleteTarget}
           onEdit={handleEdit}
         />

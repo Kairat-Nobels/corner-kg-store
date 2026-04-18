@@ -4,11 +4,15 @@ import { toast } from "react-toastify";
 
 // GET
 export const getItems = createAsyncThunk(
-    "getItems",
+    "items/getItems",
     async (_, { rejectWithValue }) => {
         try {
             const response = await fetch(itemsApi);
-            if (!response.ok) throw new Error(`Ката: ${response.status}`);
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
             return await response.json();
         } catch (error) {
             return rejectWithValue(error.message);
@@ -18,18 +22,22 @@ export const getItems = createAsyncThunk(
 
 // CREATE
 export const createItem = createAsyncThunk(
-    "createItem",
-    async (newDoctor, { rejectWithValue }) => {
+    "items/createItem",
+    async (newItem, { rejectWithValue }) => {
         try {
             const response = await fetch(itemsApi, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newDoctor),
+                body: JSON.stringify(newItem),
             });
-            if (!response.ok) throw new Error(`Ката: ${response.status}`);
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
             return await response.json();
         } catch (error) {
-            toast.error("Товарды кошууда ката кетти");
+            toast.error("Ошибка при добавлении товара");
             return rejectWithValue(error.message);
         }
     }
@@ -37,7 +45,7 @@ export const createItem = createAsyncThunk(
 
 // UPDATE
 export const updateItem = createAsyncThunk(
-    "updateItem",
+    "items/updateItem",
     async ({ id, updatedData }, { rejectWithValue }) => {
         try {
             const response = await fetch(`${itemsApi}/${id}`, {
@@ -45,10 +53,14 @@ export const updateItem = createAsyncThunk(
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedData),
             });
-            if (!response.ok) throw new Error(`Ката: ${response.status}`);
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
             return await response.json();
         } catch (error) {
-            toast.error("Товарды жаңыртууда ката кетти");
+            toast.error("Ошибка при обновлении товара");
             return rejectWithValue(error.message);
         }
     }
@@ -56,33 +68,39 @@ export const updateItem = createAsyncThunk(
 
 // DELETE
 export const deleteItem = createAsyncThunk(
-    "deleteItem",
+    "items/deleteItem",
     async (id, { rejectWithValue }) => {
         try {
             const response = await fetch(`${itemsApi}/${id}`, {
                 method: "DELETE",
             });
-            if (!response.ok) throw new Error(`Ката: ${response.status}`);
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
             return id;
         } catch (error) {
-            toast.error("Товарды өчүрүүдө ката кетти");
+            toast.error("Ошибка при удалении товара");
             return rejectWithValue(error.message);
         }
     }
 );
 
 const itemsSlice = createSlice({
-    name: "itemsSlice",
+    name: "items",
     initialState: {
         items: [],
         loading: false,
         error: null,
     },
-    extraReducers: builder => {
+    reducers: {},
+    extraReducers: (builder) => {
         builder
             // GET
-            .addCase(getItems.pending, state => {
+            .addCase(getItems.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(getItems.fulfilled, (state, action) => {
                 state.loading = false;
@@ -94,34 +112,57 @@ const itemsSlice = createSlice({
             })
 
             // CREATE
+            .addCase(createItem.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
             .addCase(createItem.fulfilled, (state, action) => {
+                state.loading = false;
                 state.items.push(action.payload);
-                toast.success("Ийгиликтүү кошулду");
+                toast.success("Товар успешно добавлен");
+            })
+            .addCase(createItem.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             })
 
             // UPDATE
+            .addCase(updateItem.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
             .addCase(updateItem.fulfilled, (state, action) => {
-                const index = state.items.findIndex(doc => doc.id === action.payload.id);
+                state.loading = false;
+
+                const index = state.items.findIndex(
+                    (item) => item.id === action.payload.id
+                );
+
                 if (index !== -1) {
                     state.items[index] = action.payload;
                 }
-                toast.success("Ийгиликтүү жаңыртылды");
+
+                toast.success("Товар успешно обновлен");
+            })
+            .addCase(updateItem.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             })
 
             // DELETE
-            .addCase(deleteItem.fulfilled, (state, action) => {
-                state.items = state.items.filter(doc => doc.id !== action.payload);
-                toast.success("Ийгиликтүү өчүрүлдү");
+            .addCase(deleteItem.pending, (state) => {
+                state.loading = true;
+                state.error = null;
             })
-
-            // Ошибка
-            .addMatcher(
-                action => action.type.endsWith("rejected"),
-                (state, action) => {
-                    state.loading = false;
-                    state.error = action.payload;
-                }
-            );
+            .addCase(deleteItem.fulfilled, (state, action) => {
+                state.loading = false;
+                state.items = state.items.filter((item) => item.id !== action.payload);
+                toast.success("Товар успешно удален");
+            })
+            .addCase(deleteItem.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            });
     },
 });
 

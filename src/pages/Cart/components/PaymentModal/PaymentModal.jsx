@@ -1,74 +1,48 @@
 import React from "react";
 import { Modal } from "rsuite";
 import { FaWhatsapp } from "react-icons/fa";
-import payment from "../../../../assets/images/payment.jpeg";
-import { useSelector } from "react-redux";
+import payment from "../../../../assets/images/payment.png";
 import "rsuite/dist/rsuite.min.css";
+import "./paymentModal.scss";
 
-const PaymentModal = ({ isOpen, onClose, promoApplied, discount }) => {
-  const cart = useSelector((state) => state.cart.cart);
-
-  const getTotalPrice = () =>
-    cart.reduce(
-      (sum, item) => sum + Math.round(item.price) * item.quantity,
-      0
-    );
-
-  const discountedPrice = Math.round(getTotalPrice() * (1 - (discount || 0)));
+const PaymentModal = ({ isOpen, onClose, orderData }) => {
+  const orderItems = orderData?.order || [];
+  const totalPrice = orderData?.amount || 0;
 
   const orderText =
-    "Саламатсызбы! Заказ боюнча жазып жатам. Заказдын маалыматы:\n" +
-    cart
-      .map(
-        (item, idx) =>
-          `${idx + 1}) ${item.title} — ${item.quantity} даана (${item.price} сом)`
-      )
-      .join("\n") +
-    `\n\nЖалпы: ${discountedPrice} сом${promoApplied ? " (жеңилдик менен)" : ""
-    }`;
+    "Здравствуйте! Отправляю чек по заказу.\n\n" +
+    "Детали заказа:\n" +
+    orderItems
+      .map((item, idx) => {
+        const sizeText = item.selectedSize ? `, размер: ${item.selectedSize}` : "";
+        const colorText = item.selectedColor ? `, цвет: ${item.selectedColor}` : "";
 
-  const whatsappLink = `https://wa.me/996704110095?text=${encodeURIComponent(
+        return `${idx + 1}) ${item.title} — ${item.quantity} шт. (${item.price} сом${sizeText}${colorText})`;
+      })
+      .join("\n") +
+    `\n\nИтого: ${totalPrice} сом`;
+
+  const whatsappLink = `https://wa.me/996709993289?text=${encodeURIComponent(
     orderText
   )}`;
 
   return (
-    <Modal open={isOpen} onClose={onClose} size="xs">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      size="xs"
+      className="corner-payment-modal"
+    >
       <Modal.Header>
-        <Modal.Title
-          style={{
-            fontWeight: 600,
-            fontSize: 24,
-            textAlign: "center",
-          }}
-        >
-          Төлөм
-        </Modal.Title>
+        <Modal.Title>Оплата заказа</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        <p
-          style={{
-            marginBottom: 12,
-            color: "#444",
-            textAlign: "center",
-          }}
-        >
-          Төлөмдү ушул реквизиттер аркылуу жүргүзүп, чекти WhatsAppка жөнөтүңүз
-        </p>
-
-        <img
-          src={payment}
-          alt="Төлөм реквизиттери"
-          style={{
-            width: "100%",
-            maxWidth: 300,
-            maxHeight: 370,
-            borderRadius: 10,
-            border: "1px solid #eee",
-            margin: "0 auto",
-            display: "block",
-          }}
-        />
+        <div className="corner-payment-modal__body">
+          <div className="corner-payment-modal__image">
+            <img src={payment} alt="Реквизиты для оплаты" />
+          </div>
+        </div>
       </Modal.Body>
 
       <Modal.Footer>
@@ -76,23 +50,10 @@ const PaymentModal = ({ isOpen, onClose, promoApplied, discount }) => {
           href={whatsappLink}
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 12,
-            background: "#22c55e",
-            color: "#fff",
-            fontWeight: 500,
-            fontSize: 18,
-            padding: "12px 0",
-            borderRadius: 10,
-            textDecoration: "none",
-            marginTop: 8,
-          }}
+          className="corner-payment-modal__whatsapp"
         >
-          <FaWhatsapp style={{ fontSize: 30 }} />
-          <span>Чекти жөнөтүү</span>
+          <FaWhatsapp />
+          <span>Отправить чек в WhatsApp</span>
         </a>
       </Modal.Footer>
     </Modal>

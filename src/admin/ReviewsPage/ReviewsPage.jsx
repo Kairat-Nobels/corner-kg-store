@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { getReviews, deleteReview } from '../../store/slices/reviewsSlice';
-import { RotatingLines } from 'react-loader-spinner';
-import ReviewsTable from '../../Tables/ReviewsTable/ReviewsTable';
-import DeleteModal from '../../components/DeleteModalNew/DeleteModalNew';
-import 'rsuite/dist/rsuite.min.css'
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getReviews, deleteReview } from "../../store/slices/reviewsSlice";
+import { RotatingLines } from "react-loader-spinner";
+import ReviewsTable from "../../Tables/ReviewsTable/ReviewsTable";
+import DeleteModal from "../../components/DeleteModalNew/DeleteModalNew";
+import "rsuite/dist/rsuite.min.css";
 
 const ReviewsPage = () => {
   const dispatch = useDispatch();
-  const { reviews, loading, error } = useSelector((state) => state.reviewsReducer);
+  const { reviews, loading, error } = useSelector(
+    (state) => state.reviewsReducer
+  );
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
@@ -16,8 +18,10 @@ const ReviewsPage = () => {
   }, [dispatch]);
 
   return (
-    <div className='adminReviews'>
-      <h3>Пикирлер</h3>
+    <div className="adminReviews">
+      <div className="adminHeader">
+        <h3>Отзывы</h3>
+      </div>
 
       {loading ? (
         <div className="center">
@@ -25,9 +29,12 @@ const ReviewsPage = () => {
           <p>Загрузка...</p>
         </div>
       ) : error ? (
-        <h3>{error}</h3>
+        <h3>Ошибка: {error}</h3>
       ) : (
-        <ReviewsTable data={reviews} onDelete={(review) => setDeleteTarget(review)} />
+        <ReviewsTable
+          data={reviews}
+          onDelete={(review) => setDeleteTarget(review)}
+        />
       )}
 
       {deleteTarget && (

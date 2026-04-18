@@ -6,7 +6,6 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { IoCloseSharp } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 
-import Connect from "../Connect/Connect";
 import Footer from "../Footer/Footer";
 import CameModal from "../CameModal/CameModal";
 import CategoriesDropdown from "../CategoriesDropdown/CategoriesDropdown";
@@ -15,8 +14,8 @@ import { getOrders } from "../../store/slices/ordersSlice";
 import { getReviews } from "../../store/slices/reviewsSlice";
 import { getItems } from "../../store/slices/itemsSlice";
 import { getCategories } from "../../store/slices/categoriesSlice";
-import { getPromocods } from "../../store/slices/promocodSlice";
 import { setCategory } from "../../store/features/filterSlice";
+import { getPromocods } from "../../store/slices/promocodSlice";
 
 const Header = () => {
     const [hamburger, setHamburger] = useState(true);
@@ -198,8 +197,6 @@ const Header = () => {
             <main>
                 <Outlet />
             </main>
-
-            <Connect />
             <Footer />
         </>
     );

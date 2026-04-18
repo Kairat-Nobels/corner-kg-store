@@ -27,7 +27,7 @@ const CategoriesDropdown = ({ categories, changeCategory, selectedCategory }) =>
       >
         {selectedCategory && selectedCategory !== "All"
           ? selectedCategory
-          : "Категориялар"}
+          : "Категории"}
       </button>
 
       {open && (

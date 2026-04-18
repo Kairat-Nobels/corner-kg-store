@@ -1,72 +1,145 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Modal, Form, Button, Input } from 'rsuite';
-import { useDispatch } from 'react-redux';
-import { createPromocod, updatePromocod } from '../../store/slices/promocodSlice';
+import React, { useEffect, useState, useRef } from "react";
+import { Modal, Form, Button, Input, SelectPicker } from "rsuite";
+import { useDispatch } from "react-redux";
+import { createPromocod, updatePromocod } from "../../store/slices/promocodSlice";
 
-const emptyCategory = {
-  code: '',
-  discount: ''
+const emptyCard = {
+  cardNumber: "",
+  clientName: "",
+  phone: "",
+  discount: "",
+  totalPurchases: "",
+  status: "active",
 };
+
+const statusOptions = [
+  { label: "Активна", value: "active" },
+  { label: "Неактивна", value: "inactive" },
+];
 
 const PromocodesModal = ({ open, onClose, categoryData }) => {
   const isEdit = Boolean(categoryData);
   const formRef = useRef();
-  const [formValue, setFormValue] = useState(emptyCategory);
   const dispatch = useDispatch();
+
+  const [formValue, setFormValue] = useState(emptyCard);
 
   useEffect(() => {
     if (isEdit) {
       setFormValue({
-        code: categoryData.code || '',
-        discount: categoryData.discount || 0
+        cardNumber: categoryData.cardNumber || categoryData.code || "",
+        clientName: categoryData.clientName || "",
+        phone: categoryData.phone || "",
+        discount: categoryData.discount || "",
+        totalPurchases: categoryData.totalPurchases || "",
+        status: categoryData.status || "active",
       });
     } else {
-      setFormValue(emptyCategory);
+      setFormValue(emptyCard);
     }
-  }, [categoryData, isEdit]);
+  }, [categoryData, isEdit, open]);
 
-  const handleChange = (val, key) => {
-    setFormValue(prev => ({ ...prev, [key]: val }));
+  const handleChange = (value, key) => {
+    setFormValue((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = () => {
-    if (!formValue.code || !formValue.discount) return;
+    if (
+      !formValue.cardNumber.trim() ||
+      !formValue.clientName.trim() ||
+      !formValue.phone.trim() ||
+      !formValue.discount
+    ) {
+      return;
+    }
+
+    const payload = {
+      cardNumber: formValue.cardNumber.trim(),
+      clientName: formValue.clientName.trim(),
+      phone: formValue.phone.trim(),
+      discount: Number(formValue.discount),
+      totalPurchases: formValue.totalPurchases
+        ? Number(formValue.totalPurchases)
+        : 0,
+      status: formValue.status || "active",
+    };
 
     if (isEdit) {
-      dispatch(updatePromocod({ id: categoryData.id, promocod: formValue }));
+      dispatch(updatePromocod({ id: categoryData.id, updatedData: payload }));
     } else {
-      dispatch(createPromocod(formValue));
+      dispatch(createPromocod(payload));
     }
 
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={onClose} size="460px">
+    <Modal open={open} onClose={onClose} size="500px" className="edit-order-modal">
       <Modal.Header>
         <Modal.Title>
-          {isEdit ? 'Промокодду өзгөртүү' : 'Промокод кошуу'}
+          {isEdit ? "Редактировать дисконтную карту" : "Добавить дисконтную карту"}
         </Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
         <Form fluid ref={formRef}>
           <Form.Group>
-            <Form.ControlLabel>Промокод</Form.ControlLabel>
+            <Form.ControlLabel>Номер карты</Form.ControlLabel>
             <Input
-              value={formValue.code}
-              onChange={val => handleChange(val, 'code')}
-              placeholder="Промокодду киргизиңиз"
+              value={formValue.cardNumber}
+              onChange={(value) => handleChange(value, "cardNumber")}
+              placeholder="Например: CORNER-001"
             />
           </Form.Group>
 
           <Form.Group>
-            <Form.ControlLabel>Жеңилдик (%)</Form.ControlLabel>
-            <Form.Control
-              name="discount"
+            <Form.ControlLabel>Имя клиента</Form.ControlLabel>
+            <Input
+              value={formValue.clientName}
+              onChange={(value) => handleChange(value, "clientName")}
+              placeholder="Введите имя клиента"
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.ControlLabel>Телефон</Form.ControlLabel>
+            <Input
+              value={formValue.phone}
+              onChange={(value) => handleChange(value, "phone")}
+              placeholder="Введите номер телефона"
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.ControlLabel>Скидка (%)</Form.ControlLabel>
+            <Input
               type="number"
               value={formValue.discount}
-              onChange={val => handleChange(val, 'discount')}
+              onChange={(value) => handleChange(value, "discount")}
+              placeholder="Например: 3"
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.ControlLabel>Сумма покупок</Form.ControlLabel>
+            <Input
+              type="number"
+              value={formValue.totalPurchases}
+              onChange={(value) => handleChange(value, "totalPurchases")}
+              placeholder="Например: 15000"
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.ControlLabel>Статус</Form.ControlLabel>
+            <SelectPicker
+              data={statusOptions}
+              value={formValue.status}
+              onChange={(value) => handleChange(value, "status")}
+              searchable={false}
+              cleanable={false}
+              placeholder="Выберите статус"
+              style={{ width: "100%" }}
             />
           </Form.Group>
         </Form>
@@ -76,13 +149,18 @@ const PromocodesModal = ({ open, onClose, categoryData }) => {
         <Button
           appearance="primary"
           onClick={handleSubmit}
-          disabled={!formValue.code || !formValue.discount}
+          disabled={
+            !formValue.cardNumber.trim() ||
+            !formValue.clientName.trim() ||
+            !formValue.phone.trim() ||
+            !formValue.discount
+          }
         >
-          Сактоо
+          Сохранить
         </Button>
 
         <Button onClick={onClose} appearance="subtle">
-          Жокко чыгаруу
+          Отмена
         </Button>
       </Modal.Footer>
     </Modal>

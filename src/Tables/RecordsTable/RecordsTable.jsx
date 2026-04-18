@@ -1,104 +1,142 @@
-import React from 'react';
-import { Table, Button, Whisper, Tooltip } from 'rsuite';
-import { MdEdit, MdDeleteOutline } from 'react-icons/md';
+import React from "react";
+import { Table, Button, Whisper, Tooltip } from "rsuite";
+import { MdEdit, MdDeleteOutline } from "react-icons/md";
 
 const RecordsTable = ({ data = [], loading, error, onDelete, onEdit }) => {
   return (
-    <div>
+    <div className="admin-table-wrap">
       <Table
         bordered
         cellBordered
         data={data}
         autoHeight
         wordWrap="break-word"
-        locale={{ emptyMessage: 'Заказдар жок' }}
+        locale={{ emptyMessage: "Заказов нет" }}
         loading={loading}
+        className="admin-rs-table"
       >
-
-        <Table.Column width={60} align="center">
+        <Table.Column width={70} align="center">
           <Table.HeaderCell>ID</Table.HeaderCell>
           <Table.Cell dataKey="id" />
         </Table.Column>
 
-        <Table.Column flexGrow={2}>
-          <Table.HeaderCell>Товарлар</Table.HeaderCell>
+        <Table.Column width={300}>
+          <Table.HeaderCell>Товары</Table.HeaderCell>
           <Table.Cell>
-            {rowData => (
-              <ul style={{ paddingLeft: 16, margin: 0 }}>
-                {rowData.order.map((item, idx) => (
-                  <li key={idx}>
-                    {item.title} — {item.quantity} даана ({item.price} сом)
-                  </li>
+            {(rowData) => (
+              <div className="order-products-list">
+                {rowData.order?.map((item, idx) => (
+                  <div key={idx} className="order-product-item">
+                    <strong>{item.title}</strong>
+                    <span>
+                      {item.quantity} шт. × {item.price} сом
+                    </span>
+                    {(item.selectedSize || item.selectedColor) && (
+                      <small>
+                        {item.selectedSize ? `Размер: ${item.selectedSize}` : ""}
+                        {item.selectedSize && item.selectedColor ? " · " : ""}
+                        {item.selectedColor ? `Цвет: ${item.selectedColor}` : ""}
+                      </small>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </Table.Cell>
         </Table.Column>
 
-        <Table.Column width={120}>
+        <Table.Column width={130}>
           <Table.HeaderCell>Дата</Table.HeaderCell>
           <Table.Cell>
-            {rowData => new Date(rowData.date).toLocaleDateString("ru-RU")}
+            {(rowData) =>
+              rowData.date
+                ? new Date(rowData.date).toLocaleDateString("ru-RU")
+                : "—"
+            }
           </Table.Cell>
         </Table.Column>
 
-        <Table.Column width={120}>
-          <Table.HeaderCell>Аты</Table.HeaderCell>
+        <Table.Column width={140}>
+          <Table.HeaderCell>Имя</Table.HeaderCell>
           <Table.Cell dataKey="name" />
         </Table.Column>
 
-        <Table.Column width={120}>
+        <Table.Column width={150}>
           <Table.HeaderCell>Телефон</Table.HeaderCell>
           <Table.Cell dataKey="phone" />
         </Table.Column>
 
-        <Table.Column width={160}>
-          <Table.HeaderCell>Дарек</Table.HeaderCell>
-          <Table.Cell dataKey="address" />
-        </Table.Column>
-
-        <Table.Column width={100}>
-          <Table.HeaderCell>Сумма</Table.HeaderCell>
-          <Table.Cell dataKey="amount" />
+        <Table.Column width={180}>
+          <Table.HeaderCell>Адрес</Table.HeaderCell>
+          <Table.Cell>
+            {(rowData) => rowData.address || "Самовывоз"}
+          </Table.Cell>
         </Table.Column>
 
         <Table.Column width={120}>
-          <Table.HeaderCell>Статус</Table.HeaderCell>
-          <Table.Cell dataKey="status" />
+          <Table.HeaderCell>Сумма</Table.HeaderCell>
+          <Table.Cell>
+            {(rowData) => `${rowData.amount} сом`}
+          </Table.Cell>
         </Table.Column>
 
-        <Table.Column width={100} align="center">
-          <Table.HeaderCell>Аракеттер</Table.HeaderCell>
+        <Table.Column width={120}>
+          <Table.HeaderCell>Скидка</Table.HeaderCell>
           <Table.Cell>
-            {rowData => (
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+            {(rowData) =>
+              rowData.discountPercent ? `${rowData.discountPercent}%` : "—"
+            }
+          </Table.Cell>
+        </Table.Column>
+
+        <Table.Column width={140}>
+          <Table.HeaderCell>Статус</Table.HeaderCell>
+          <Table.Cell>
+            {(rowData) => (
+              <span className="order-status-badge">{rowData.status}</span>
+            )}
+          </Table.Cell>
+        </Table.Column>
+
+        <Table.Column width={120} align="center" fixed="right">
+          <Table.HeaderCell>Действия</Table.HeaderCell>
+          <Table.Cell>
+            {(rowData) => (
+              <div className="admin-table-actions">
                 <Whisper
                   trigger="hover"
                   placement="top"
-                  speaker={<Tooltip>Өзгөртүү</Tooltip>}
+                  speaker={<Tooltip>Редактировать</Tooltip>}
                 >
-                  <Button onClick={() => onEdit && onEdit(rowData)} appearance="subtle">
-                    <MdEdit color="#1caf68" size={20} />
+                  <Button
+                    onClick={() => onEdit && onEdit(rowData)}
+                    appearance="subtle"
+                    className="admin-icon-btn"
+                  >
+                    <MdEdit color="#4ade80" size={20} />
                   </Button>
                 </Whisper>
 
                 <Whisper
                   trigger="hover"
                   placement="top"
-                  speaker={<Tooltip>Өчүрүү</Tooltip>}
+                  speaker={<Tooltip>Удалить</Tooltip>}
                 >
-                  <Button onClick={() => onDelete && onDelete(rowData)} appearance="subtle">
-                    <MdDeleteOutline color="rgb(210 54 54)" size={20} />
+                  <Button
+                    onClick={() => onDelete && onDelete(rowData)}
+                    appearance="subtle"
+                    className="admin-icon-btn"
+                  >
+                    <MdDeleteOutline color="#ef4444" size={20} />
                   </Button>
                 </Whisper>
               </div>
             )}
           </Table.Cell>
         </Table.Column>
-
       </Table>
 
-      {error && <div className="text-danger mt-3">Ката: {error}</div>}
+      {error && <div className="text-danger mt-3">Ошибка: {error}</div>}
     </div>
   );
 };

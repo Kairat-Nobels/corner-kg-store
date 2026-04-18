@@ -1,86 +1,105 @@
-import React, { useState } from 'react';
-import { createReview } from '../../store/slices/reviewsSlice';
-import { useDispatch } from 'react-redux';
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { createReview } from "../../store/slices/reviewsSlice";
+import "./contact.scss";
 
 const Contact = () => {
     const dispatch = useDispatch();
-    const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [comment, setComment] = useState('');
-    const [isValid, setIsValid] = useState(false);
 
-    const handlePhoneNumberChange = (event) => {
-        let input = event.target.value.replace(/\D/g, '');
-        if (!/^(2\d{2}|5\d{2}|7\d{2}|9\d{2})\d{6}$/.test(input)) {
-            setIsValid(false);
-            setPhone(input);
-            return;
-        }
-        input = input.replace(/^(\d{3})(\d{3})(\d{3})$/, '($1)-$2-$3');
-        setIsValid(/^\(\d{3}\)-\d{3}-\d{3}$/.test(input));
-        setPhone(input);
-    };
+    const [name, setName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [comment, setComment] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [success, setSuccess] = useState(false);
 
-    const handleSubmit = (e) => {
+    const isPhoneValid = phone.replace(/\D/g, "").length >= 9;
+    const isFormValid = name.trim() && comment.trim() && isPhoneValid;
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        dispatch(createReview({ name, phone, comment }));
-        setName('');
-        setPhone('');
-        setComment('');
+        if (!isFormValid) return;
+
+        try {
+            setIsSubmitting(true);
+            setSuccess(false);
+
+            await dispatch(
+                createReview({
+                    name: name.trim(),
+                    phone: phone.trim(),
+                    comment: comment.trim(),
+                })
+            );
+
+            setName("");
+            setPhone("");
+            setComment("");
+            setSuccess(true);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
-        <div className="home-contact page-container p-5 d-flex flex-column align-items-center justify-content-center">
-            <h3 className='pb-3 fw-light color-main'>Пикир калтыруу</h3>
+        <section className="corner-review-section">
+            <div className="corner-review-wrapper">
+                <span className="corner-label">Отзывы</span>
 
-            <form onSubmit={handleSubmit} className="w-100" style={{ maxWidth: 400 }}>
-                <div className="mb-3">
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Атыңыз"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        required
-                    />
-                </div>
+                <h2>Оставьте отзыв</h2>
+                <p className="corner-review-subtitle">
+                    Поделитесь своим мнением о магазине и качестве товаров
+                </p>
 
-                <div className="mb-3">
-                    <input
-                        type="tel"
-                        className="form-control"
-                        placeholder="Телефон номериңиз"
-                        value={phone}
-                        onChange={handlePhoneNumberChange}
-                        required
-                    />
-                    {!isValid && phone.length > 0 && (
-                        <div className="text-danger mt-1" style={{ fontSize: 14 }}>
-                            Телефон номери туура эмес
-                        </div>
+                <form onSubmit={handleSubmit} className="corner-review-form">
+                    <div className="form-group">
+                        <input
+                            type="text"
+                            placeholder="Ваше имя"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <input
+                            type="tel"
+                            placeholder="Ваш телефон"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            required
+                        />
+                        {phone.length > 0 && !isPhoneValid && (
+                            <span className="error-text">
+                                Введите корректный номер
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <textarea
+                            placeholder="Ваш отзыв"
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            rows={5}
+                            required
+                        />
+                    </div>
+
+                    <button type="submit" disabled={!isFormValid || isSubmitting}>
+                        {isSubmitting ? "Отправка..." : "Отправить отзыв"}
+                    </button>
+
+                    {success && (
+                        <p className="success-text">
+                            Спасибо! Отзыв отправлен 👍
+                        </p>
                     )}
-                </div>
-
-                <div className="mb-3">
-                    <textarea
-                        className="form-control"
-                        placeholder="Пикириңиз"
-                        value={comment}
-                        onChange={e => setComment(e.target.value)}
-                        required
-                        rows={3}
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    className="general-button w-100"
-                    disabled={!name || !phone || !isValid || !comment}
-                >
-                    Жөнөтүү
-                </button>
-            </form>
-        </div>
+                </form>
+            </div>
+        </section>
     );
 };
 

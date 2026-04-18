@@ -2,159 +2,172 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { ordersApi } from "../../api/api";
 import { toast } from "react-toastify";
 
+// GET
 export const getOrders = createAsyncThunk(
-    "getOrders",
-    async function (info = null, { dispatch, rejectWithValue }) {
+    "orders/getOrders",
+    async (_, { rejectWithValue }) => {
         try {
             const response = await fetch(ordersApi);
-            if (response.status === 200) {
-                const records = await response.json();
-                return records;
-            }
-            else {
-                throw Error(`Ката: ${response.status}`);
-            }
-        }
-        catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-)
 
-export const createOrder = createAsyncThunk(
-    "createOrder",
-    async function (record = null, { dispatch, rejectWithValue }) {
-        try {
-            const res = await fetch(ordersApi, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(record)
-            });
-            if (res.status === 201) {
-                return 'Сиз ийгиликтүү заказ бердиңиз';
-            }
-            else {
-                throw Error(`Ката: ${res.status}`);
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
             }
 
+            return await response.json();
         } catch (error) {
             return rejectWithValue(error.message);
         }
-
-    }
-)
-
-export const deleteOrder = createAsyncThunk(
-    'deleteOrder',
-    async (mockupId) => {
-        try {
-            const response = await fetch(`${ordersApi}/${mockupId}`, {
-                method: 'DELETE'
-            });
-            if (response.status === 200) {
-                return mockupId;
-            } else {
-                throw Error(`Ката: ${response.status}`);
-            }
-        } catch (error) {
-            // eslint-disable-next-line no-undef
-            return rejectWithValue(error.message);
-        }
-
     }
 );
 
+// CREATE
+export const createOrder = createAsyncThunk(
+    "orders/createOrder",
+    async (newOrder, { rejectWithValue }) => {
+        try {
+            const response = await fetch(ordersApi, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newOrder),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            toast.error("Ошибка при создании заказа");
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+// DELETE
+export const deleteOrder = createAsyncThunk(
+    "orders/deleteOrder",
+    async (orderId, { rejectWithValue }) => {
+        try {
+            const response = await fetch(`${ordersApi}/${orderId}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
+            return orderId;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+// UPDATE
 export const updateOrder = createAsyncThunk(
     "orders/updateOrder",
-    async function ({ id, updatedData }, { rejectWithValue }) {
+    async ({ id, updatedData }, { rejectWithValue }) => {
         try {
-            const res = await fetch(`${ordersApi}/${id}`, {
+            const response = await fetch(`${ordersApi}/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedData),
             });
-            if (!res.ok) throw new Error(`Ката: ${res.status}`);
-            const data = await res.json();
-            toast.success("Заказ жаңыртылды");
-            return data;
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
+            return await response.json();
         } catch (error) {
-            toast.error(error.message);
+            toast.error("Ошибка при обновлении заказа");
             return rejectWithValue(error.message);
         }
     }
 );
 
 const ordersSlice = createSlice({
-    name: 'ordersSlice',
+    name: "orders",
     initialState: {
         orders: [],
         loading: false,
-        delLoading: false,
-        delMessage: null,
-        delError: null,
+        deleting: false,
         error: null,
-        success: null
+        success: null,
     },
-    extraReducers: builder => {
-        builder.addCase(getOrders.fulfilled, (state, action) => {
-            state.loading = false;
-            state.orders = action.payload;
-        })
-        builder.addCase(getOrders.rejected, (state, action) => {
-            state.error = action.payload;
-            state.loading = false;
-        })
-        builder.addCase(getOrders.pending, (state, action) => {
-            state.loading = true;
-        })
+    reducers: {
+        clearOrderMessages(state) {
+            state.error = null;
+            state.success = null;
+        },
+    },
+    extraReducers: (builder) => {
+        builder
+            // GET
+            .addCase(getOrders.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getOrders.fulfilled, (state, action) => {
+                state.loading = false;
+                state.orders = action.payload;
+            })
+            .addCase(getOrders.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
 
-        // create
-        builder.addCase(createOrder.fulfilled, (state, action) => {
-            state.loading = false;
-            state.success = action.payload;
-            toast.success("Заказ ийгиликтүү түзүлдү");
-        })
-        builder.addCase(createOrder.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
-        })
-        builder.addCase(createOrder.pending, (state, action) => {
-            state.loading = true;
-        })
+            // CREATE
+            .addCase(createOrder.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = null;
+            })
+            .addCase(createOrder.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = "Заказ успешно оформлен";
+                state.orders.unshift(action.payload);
+                toast.success("Заказ успешно создан");
+            })
+            .addCase(createOrder.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
 
-        // delete
-        builder.addCase(deleteOrder.pending, (state, action) => {
-            state.delLoading = true;
-        })
-        builder.addCase(deleteOrder.fulfilled, (state, action) => {
-            state.delLoading = false;
-            state.delMessage = action.payload;
+            // DELETE
+            .addCase(deleteOrder.pending, (state) => {
+                state.deleting = true;
+                state.error = null;
+            })
+            .addCase(deleteOrder.fulfilled, (state, action) => {
+                state.deleting = false;
+                state.orders = state.orders.filter((order) => order.id !== action.payload);
+                toast.success("Заказ удален");
+            })
+            .addCase(deleteOrder.rejected, (state, action) => {
+                state.deleting = false;
+                state.error = action.payload || "Ошибка при удалении заказа";
+                toast.error(state.error);
+            })
 
-            state.orders = state.orders.filter(doc => doc.id !== action.payload);
-            toast.success("Ийгиликтүү өчүрүлдү");
+            // UPDATE
+            .addCase(updateOrder.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateOrder.fulfilled, (state, action) => {
+                state.loading = false;
+                state.orders = state.orders.map((order) =>
+                    order.id === action.payload.id ? action.payload : order
+                );
+                toast.success("Заказ обновлен");
+            })
+            .addCase(updateOrder.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            });
+    },
+});
 
-        })
-        builder.addCase(deleteOrder.rejected, (state, action) => {
-            if (action.payload === undefined) state.delError = 'Ката, бир нерсе туура эмес кетти'
-            else state.delError = action.error
-            state.delLoading = false;
-        })
-
-        // update
-        builder.addCase(updateOrder.pending, (state, action) => {
-            state.loading = true;
-        })
-        builder.addCase(updateOrder.fulfilled, (state, action) => {
-            state.loading = false;
-            state.orders = state.orders.map(order =>
-                order.id === action.payload.id ? action.payload : order
-            );
-        })
-        builder.addCase(updateOrder.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
-        })
-    }
-})
-
+export const { clearOrderMessages } = ordersSlice.actions;
 export default ordersSlice.reducer;

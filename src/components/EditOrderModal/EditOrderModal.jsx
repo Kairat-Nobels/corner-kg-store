@@ -1,65 +1,74 @@
-import React, { useState } from 'react';
-import { Modal, Button } from 'rsuite';
+import React, { useEffect, useState } from "react";
+import { Modal, Button, SelectPicker, Input } from "rsuite";
 
 const statusOptions = [
-  "Заказано",
-  "Оплачено",
-  "Доставлено",
-  "Отменен"
+  { label: "Новый", value: "Новый" },
+  { label: "Подтвержден", value: "Подтвержден" },
+  { label: "Оплачен", value: "Оплачен" },
+  { label: "Доставлен", value: "Доставлен" },
+  { label: "Отменен", value: "Отменен" },
 ];
 
 const EditOrderModal = ({ open, onClose, order, onSave }) => {
-  const [status, setStatus] = useState(order.status);
-  const [address, setAddress] = useState(order.address);
+  const [status, setStatus] = useState(order?.status || "");
+  const [address, setAddress] = useState(order?.address || "");
+
+  useEffect(() => {
+    if (order) {
+      setStatus(order.status || "");
+      setAddress(order.address || "");
+    }
+  }, [order]);
 
   const handleSave = () => {
-    onSave({ ...order, status, address });
+    onSave({
+      ...order,
+      status,
+      address,
+    });
   };
 
   return (
-    <Modal open={open} onClose={onClose} size="xs">
+    <Modal open={open} onClose={onClose} size="xs" className="edit-order-modal">
       <Modal.Header>
         <Modal.Title>
-          Заказды өзгөртүү #{order.id}
+          Редактирование заказа #{order?.id}
         </Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        <div className="mb-3">
-          <label className="form-label">Статус</label>
-          <select
-            className="form-select"
+        <div className="form-group">
+          <label>Статус</label>
+
+          <SelectPicker
+            data={statusOptions}
             value={status}
-            onChange={e => setStatus(e.target.value)}
-          >
-            {statusOptions.map(opt => (
-              <option key={opt} value={opt}>
-                {opt === "Заказано" && "Кабыл алынды"}
-                {opt === "Оплачено" && "Төлөндү"}
-                {opt === "Доставлено" && "Жеткирилди"}
-                {opt === "Отменен" && "Жокко чыгарылды"}
-              </option>
-            ))}
-          </select>
+            onChange={setStatus}
+            searchable={false}
+            cleanable={false}
+            placeholder="Выберите статус"
+            style={{ width: "100%" }}
+          />
         </div>
 
-        <div className="mb-3">
-          <label className="form-label">Дарек</label>
-          <input
-            className="form-control"
+        <div className="form-group">
+          <label>Адрес</label>
+
+          <Input
             value={address}
-            onChange={e => setAddress(e.target.value)}
+            onChange={setAddress}
+            placeholder="Введите адрес доставки"
           />
         </div>
       </Modal.Body>
 
       <Modal.Footer>
-        <Button onClick={handleSave} appearance="primary">
-          Сактоо
+        <Button appearance="primary" onClick={handleSave}>
+          Сохранить
         </Button>
 
-        <Button onClick={onClose} appearance="subtle">
-          Жокко чыгаруу
+        <Button appearance="subtle" onClick={onClose}>
+          Отмена
         </Button>
       </Modal.Footer>
     </Modal>

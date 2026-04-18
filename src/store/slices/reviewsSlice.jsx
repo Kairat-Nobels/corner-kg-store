@@ -2,125 +2,134 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import { reviewsApi } from "../../api/api";
 
+// GET
 export const getReviews = createAsyncThunk(
-    "getReviews",
-    async function (info = null, { dispatch, rejectWithValue }) {
+    "reviews/getReviews",
+    async (_, { rejectWithValue }) => {
         try {
             const response = await fetch(reviewsApi);
-            if (response.status === 200) {
-                const records = await response.json();
-                return records;
-            }
-            else {
-                throw Error(`Ката: ${response.status}`);
-            }
-        }
-        catch (error) {
-            return rejectWithValue(error.message);
-        }
-        finally {
 
-        }
-    }
-)
-
-export const createReview = createAsyncThunk(
-    "createReview",
-    async function (record = null, { dispatch, rejectWithValue }) {
-        try {
-            const res = await fetch(reviewsApi, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(record)
-            });
-            if (res.status === 201) {
-                return 'Сиз ийгиликтүү пикир калтырдыңыз';
-            }
-            else {
-                throw Error(`Ката: ${res.status}`);
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
             }
 
+            return await response.json();
         } catch (error) {
             return rejectWithValue(error.message);
         }
-
-    }
-)
-
-export const deleteReview = createAsyncThunk(
-    'deleteReview',
-    async (mockupId) => {
-        try {
-            const response = await fetch(`${reviewsApi}/${mockupId}`, {
-                method: 'DELETE'
-            });
-            if (response.status === 200) {
-                return "Ийгиликтүү өчүрүлдү";
-            } else {
-                throw Error(`Ката: ${response.status}`);
-            }
-        } catch (error) {
-            // eslint-disable-next-line no-undef
-            return rejectWithValue(error.message);
-        }
-
     }
 );
 
-const recordsSlice = createSlice({
-    name: 'reviewsSlice',
+// CREATE
+export const createReview = createAsyncThunk(
+    "reviews/createReview",
+    async (newReview, { rejectWithValue }) => {
+        try {
+            const response = await fetch(reviewsApi, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newReview),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            toast.error("Ошибка при отправке отзыва");
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+// DELETE
+export const deleteReview = createAsyncThunk(
+    "reviews/deleteReview",
+    async (reviewId, { rejectWithValue }) => {
+        try {
+            const response = await fetch(`${reviewsApi}/${reviewId}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
+            return reviewId;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+const reviewsSlice = createSlice({
+    name: "reviews",
     initialState: {
         reviews: [],
         loading: false,
-        delLoading: false,
-        delMessage: null,
-        delError: null,
+        deleting: false,
         error: null,
-        success: null
+        success: null,
     },
-    extraReducers: builder => {
-        builder.addCase(getReviews.fulfilled, (state, action) => {
-            state.loading = false;
-            state.reviews = action.payload;
-        })
-        builder.addCase(getReviews.rejected, (state, action) => {
-            state.error = action.payload;
-            state.loading = false;
-        })
-        builder.addCase(getReviews.pending, (state, action) => {
-            state.loading = true;
-        })
+    reducers: {
+        clearReviewMessages(state) {
+            state.error = null;
+            state.success = null;
+        },
+    },
+    extraReducers: (builder) => {
+        builder
+            // GET
+            .addCase(getReviews.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getReviews.fulfilled, (state, action) => {
+                state.loading = false;
+                state.reviews = action.payload;
+            })
+            .addCase(getReviews.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
 
-        // post
-        builder.addCase(createReview.fulfilled, (state, action) => {
-            state.loading = false;
-            state.success = action.payload;
-            toast.success("Пикир ийгиликтүү кошулду");
-        })
-        builder.addCase(createReview.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
-        })
-        builder.addCase(createReview.pending, (state, action) => {
-            state.loading = true;
-        })
+            // CREATE
+            .addCase(createReview.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = null;
+            })
+            .addCase(createReview.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = "Отзыв успешно отправлен";
+                state.reviews.unshift(action.payload);
+                toast.success("Отзыв успешно добавлен");
+            })
+            .addCase(createReview.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
 
-        // delete
-        builder.addCase(deleteReview.pending, (state, action) => {
-            state.delLoading = true;
-        })
-        builder.addCase(deleteReview.fulfilled, (state, action) => {
-            state.delLoading = false;
-            state.delMessage = action.payload
-            state.reviews = state.reviews.filter((item) => item.id !== action.meta.arg);
-            toast.success("Ийгиликтүү өчүрүлдү");
-        })
-        builder.addCase(deleteReview.rejected, (state, action) => {
-            if (action.payload === undefined) state.delError = 'Ката, бир нерсе туура эмес кетти'
-            else state.delError = action.error
-            state.delLoading = false;
-        })
-    }
-})
+            // DELETE
+            .addCase(deleteReview.pending, (state) => {
+                state.deleting = true;
+                state.error = null;
+            })
+            .addCase(deleteReview.fulfilled, (state, action) => {
+                state.deleting = false;
+                state.reviews = state.reviews.filter(
+                    (item) => item.id !== action.payload
+                );
+                toast.success("Отзыв удален");
+            })
+            .addCase(deleteReview.rejected, (state, action) => {
+                state.deleting = false;
+                state.error = action.payload || "Ошибка при удалении отзыва";
+                toast.error(state.error);
+            });
+    },
+});
 
-export default recordsSlice.reducer
+export const { clearReviewMessages } = reviewsSlice.actions;
+export default reviewsSlice.reducer;

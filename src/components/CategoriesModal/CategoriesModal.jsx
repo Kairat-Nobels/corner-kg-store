@@ -1,73 +1,90 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Modal, Form, Button, Input } from 'rsuite';
-import { useDispatch } from 'react-redux';
-import { createCategories, updateCategories } from '../../store/slices/categoriesSlice';
+import React, { useEffect, useState, useRef } from "react";
+import { Modal, Form, Button, Input } from "rsuite";
+import { useDispatch } from "react-redux";
+import {
+  createCategory,
+  updateCategory,
+} from "../../store/slices/categoriesSlice";
 
 const emptyCategory = {
-  name: '',
-  description: ''
+  name: "",
+  description: "",
 };
 
 const CategoriesModal = ({ open, onClose, categoryData }) => {
   const isEdit = Boolean(categoryData);
   const formRef = useRef();
-  const [formValue, setFormValue] = useState(emptyCategory);
   const dispatch = useDispatch();
+
+  const [formValue, setFormValue] = useState(emptyCategory);
 
   useEffect(() => {
     if (isEdit) {
       setFormValue({
-        name: categoryData.name || '',
-        description: categoryData.description || ''
+        name: categoryData.name || "",
+        description: categoryData.description || "",
       });
     } else {
       setFormValue(emptyCategory);
     }
-  }, [categoryData, isEdit]);
+  }, [categoryData, isEdit, open]);
 
-  const handleChange = (val, key) => {
-    setFormValue(prev => ({ ...prev, [key]: val }));
+  const handleChange = (value, key) => {
+    setFormValue((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = () => {
-    if (!formValue.name || !formValue.description) return;
+    if (!formValue.name.trim() || !formValue.description.trim()) return;
 
     if (isEdit) {
-      dispatch(updateCategories({ id: categoryData.id, news: formValue }));
+      dispatch(
+        updateCategory({
+          id: categoryData.id,
+          updatedData: {
+            name: formValue.name.trim(),
+            description: formValue.description.trim(),
+          },
+        })
+      );
     } else {
-      dispatch(createCategories(formValue));
+      dispatch(
+        createCategory({
+          name: formValue.name.trim(),
+          description: formValue.description.trim(),
+        })
+      );
     }
 
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={onClose} size="460px">
+    <Modal open={open} onClose={onClose} size="460px" className="edit-order-modal">
       <Modal.Header>
         <Modal.Title>
-          {isEdit ? 'Категорияны өзгөртүү' : 'Категория кошуу'}
+          {isEdit ? "Редактировать категорию" : "Добавить категорию"}
         </Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
         <Form fluid ref={formRef}>
           <Form.Group>
-            <Form.ControlLabel>Аты</Form.ControlLabel>
+            <Form.ControlLabel>Название</Form.ControlLabel>
             <Input
               value={formValue.name}
-              onChange={val => handleChange(val, 'name')}
-              placeholder="Категориянын аты"
+              onChange={(value) => handleChange(value, "name")}
+              placeholder="Введите название категории"
             />
           </Form.Group>
 
           <Form.Group>
-            <Form.ControlLabel>Сүрөттөмө</Form.ControlLabel>
+            <Form.ControlLabel>Описание</Form.ControlLabel>
             <Input
               as="textarea"
               rows={4}
               value={formValue.description}
-              onChange={val => handleChange(val, 'description')}
-              placeholder="Категориянын сүрөттөмөсү"
+              onChange={(value) => handleChange(value, "description")}
+              placeholder="Введите описание категории"
             />
           </Form.Group>
         </Form>
@@ -77,13 +94,13 @@ const CategoriesModal = ({ open, onClose, categoryData }) => {
         <Button
           appearance="primary"
           onClick={handleSubmit}
-          disabled={!formValue.name || !formValue.description}
+          disabled={!formValue.name.trim() || !formValue.description.trim()}
         >
-          Сактоо
+          Сохранить
         </Button>
 
         <Button onClick={onClose} appearance="subtle">
-          Жокко чыгаруу
+          Отмена
         </Button>
       </Modal.Footer>
     </Modal>

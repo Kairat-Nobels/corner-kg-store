@@ -1,134 +1,269 @@
-@import 'rsuite/dist/rsuite.min.css';
-
 .wrapper {
   min-height: 100vh;
-  background: #f8fcf9;
-  padding: 20px 0 40px;
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  background: #050505;
+  color: #ffffff;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #0d0d0d 0%, #090909 100%);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.logoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.logo {
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #ffffff;
+}
+
+.logoSub {
+  color: #9f9f9f;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.navbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.navItem {
+  text-decoration: none;
+  color: #cfcfcf;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: transparent;
+  border: 1px solid transparent;
+  font-size: 15px;
+  font-weight: 700;
+  transition: 0.3s ease;
+}
+
+.navItem:hover {
+  color: #ffffff;
+  background: #141414;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.active {
+  color: #111111;
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.sidebarBottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.primaryButton,
+.secondaryButton,
+.logoutButton {
+  min-height: 48px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.primaryButton {
+  border: 1px solid #ffffff;
+  background: #ffffff;
+  color: #111111;
+}
+
+.primaryButton:hover {
+  background: #dddddd;
+}
+
+.secondaryButton {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: #ffffff;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.logoutButton {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #141414;
+  color: #ffffff;
+}
+
+.logoutButton:hover {
+  background: #1c1c1c;
+}
+
+.main {
+  min-width: 0;
+  padding: 28px;
+  overflow-x: hidden;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin: 20px 0 30px;
+  align-items: flex-start;
   gap: 20px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
-.header h2 {
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cfcfcf;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 14px;
+}
+
+.header h1 {
+  margin: 0 0 10px;
+  font-size: 42px;
+  line-height: 1.05;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.header p {
   margin: 0;
-  color: #2f4a38;
-  font-size: 32px;
-  font-weight: 700;
+  max-width: 740px;
+  color: #b5b5b5;
+  line-height: 1.8;
 }
 
-.navbar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
+.adminInfo {
+  min-width: 220px;
   padding: 18px 20px;
-  background: #ffffff;
-  border: 1px solid #e2eee5;
-  border-radius: 18px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #111111 0%, #0b0b0b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.navbar ul {
-  list-style-type: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 30px;
+.adminInfoLabel {
+  display: block;
+  color: #999999;
+  font-size: 12px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
 }
 
-.navbar a {
-  padding: 10px 22px;
-  color: #5d8660;
-  background-color: #f3f9f4;
-  border: 1px solid #d7e6d9;
-  font-weight: 600;
-  width: fit-content;
-  text-decoration: none;
-  font-size: 16px;
-  line-height: 22px;
-  position: relative;
-  border-radius: 12px;
-  transition: 0.2s ease;
-}
-
-.navbar a:hover {
-  text-decoration: none;
-  color: #2f4a38;
-  background: #edf7ef;
-  border-color: #7ca37d;
-}
-
-.active {
-  font-weight: 600;
-  color: #ffffff !important;
-  background: linear-gradient(135deg, #7ca37d, #5d8660) !important;
-  border-radius: 12px;
-  border: none !important;
-  text-decoration: none;
-  box-shadow: 0 8px 18px rgba(93, 134, 96, 0.2);
-}
-
-.active:hover {
-  transform: none;
-  color: #ffffff !important;
-  text-decoration: none;
+.adminInfo strong {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
 }
 
 .content {
-  margin-bottom: 20px;
-  padding: 28px;
-  background: #ffffff;
-  border: 1px solid #e2eee5;
-  border-radius: 22px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  background: transparent;
+  min-width: 0;
 }
 
 .notWelcome {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: 20px;
-  background: #f8fcf9;
-  text-align: center;
+  justify-content: center;
   padding: 20px;
+  background: #050505;
 }
 
-.notWelcome h2 {
-  color: #2f4a38;
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0;
+.notWelcomeBox {
+  width: 100%;
+  max-width: 500px;
+  padding: 34px 24px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #111111 0%, #0b0b0b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
 }
 
-@media (max-width: 768px) {
-  .header {
-    align-items: flex-start;
+.notWelcomeBox h2 {
+  margin: 0 0 12px;
+  color: #ffffff;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.notWelcomeBox p {
+  color: #b8b8b8;
+  line-height: 1.8;
+  margin: 0 0 24px;
+}
+
+@media (max-width: 992px) {
+  .wrapper {
+    grid-template-columns: 1fr;
   }
 
-  .header h2 {
-    font-size: 24px;
+  .sidebar {
+    position: static;
+    height: auto;
+    overflow: visible;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .navbar {
-    gap: 10px;
-    padding: 14px;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
-  .navbar a {
+  .main {
+    padding: 20px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 576px) {
+  .sidebar {
+    padding: 20px 16px;
+  }
+
+  .main {
+    padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+  }
+
+  .adminInfo {
     width: 100%;
-    text-align: center;
-  }
-
-  .content {
-    padding: 18px;
   }
 }

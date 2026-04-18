@@ -1,47 +1,74 @@
-import React from 'react';
-import { useDispatch } from 'react-redux';
-import { decrementQuantity, incrementQuantity, removeItem } from '../../../../store/features/cartSlice';
+import React from "react";
+import { useDispatch } from "react-redux";
+import {
+    decrementQuantity,
+    incrementQuantity,
+    removeItem,
+} from "../../../../store/features/cartSlice";
 import { IoIosCloseCircleOutline } from "react-icons/io";
+import "./cartItem.scss";
 
+const CartItem = ({ image, title, price, quantity, category, item }) => {
+    const dispatch = useDispatch();
 
-const CartItem = (props) => {
-    const { image, title, price, quantity, category, item } = props;
-    const dispatch = useDispatch()
+    const total = Number(price || 0) * Number(quantity || 0);
+
     return (
-        <div className="row mb-4 d-flex justify-content-around align-items-center">
-            <div className="col-md-2 col-lg-2 col-xl-2">
-                <img
-                    src={image}
-                    className="img-fluid rounded-3" alt="Cotton T-shirt" />
+        <article className="cart-item">
+            <div className="cart-item__image">
+                <img src={image} alt={title} />
             </div>
-            <div className="items-desc-mob col-md-3 col-lg-3 col-xl-3">
-                <h6 className="text-muted">{category}</h6>
-                <h6 className="text-black mb-0">{title}</h6>
+
+            <div className="cart-item__info">
+                <span className="cart-item__category">{category}</span>
+                <h3 className="cart-item__title">{title}</h3>
+
+                {item?.selectedSize || item?.selectedColor ? (
+                    <div className="cart-item__meta">
+                        {item?.selectedSize && <span>Размер: {item.selectedSize}</span>}
+                        {item?.selectedColor && <span>Цвет: {item.selectedColor}</span>}
+                    </div>
+                ) : null}
             </div>
-            <div className="items-desc-mob-bottom col-md-3 col-lg-3 col-xl-2 d-flex align-items-center">
-                <button className="quantity-button px-2"
-                    onClick={() => dispatch(decrementQuantity(item.id))}>
-                    -
+
+            <div className="cart-item__quantity">
+                <button
+                    type="button"
+                    className="quantity-button"
+                    onClick={() => dispatch(decrementQuantity(item.id))}
+                    aria-label="Уменьшить количество"
+                >
+                    −
                 </button>
 
-                <span className='px-2'>{quantity}</span>
+                <span className="quantity-value">{quantity}</span>
 
-                <button className="px-2 quantity-button"
-                    onClick={() => dispatch(incrementQuantity(item?.id))}>
+                <button
+                    type="button"
+                    className="quantity-button"
+                    onClick={() => dispatch(incrementQuantity(item.id))}
+                    aria-label="Увеличить количество"
+                >
                     +
                 </button>
             </div>
-            <div className="mob-price col-md-3 col-lg-2 p-0">
-                <h6 className="mb-0">{price * quantity}.00 сом</h6>
-                <div className="col-md-1 col-lg-1 col-xl-1 text-end-mob">
-                    <button onClick={() => dispatch(removeItem(item.id))} className='cart-trash'><IoIosCloseCircleOutline /></button>
-                </div>
-            </div>
-            <div className="col-md-1 col-lg-1 col-xl-1 text-end">
-                <button onClick={() => dispatch(removeItem(item.id))} className='cart-trash'><IoIosCloseCircleOutline /></button>
-            </div>
-        </div>
-    )
-}
 
-export default CartItem
+            <div className="cart-item__price">
+                <strong>{total}.00 сом</strong>
+            </div>
+
+            <div className="cart-item__remove">
+                <button
+                    type="button"
+                    onClick={() => dispatch(removeItem(item.id))}
+                    className="cart-trash"
+                    aria-label="Удалить товар"
+                >
+                    <IoIosCloseCircleOutline />
+                </button>
+            </div>
+        </article>
+    );
+};
+
+export default CartItem;

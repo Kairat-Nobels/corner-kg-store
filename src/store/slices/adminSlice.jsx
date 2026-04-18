@@ -1,54 +1,80 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
-import { adminApi } from "../../api/api"; // путь к вашему api файлу
+import { adminApi } from "../../api/api";
 
 export const loginAdmin = createAsyncThunk(
-    'admin/login',
+    "admin/login",
     async ({ login, password }, { rejectWithValue }) => {
         try {
-            const res = await fetch(adminApi);
-            const data = await res.json();
+            const response = await fetch(adminApi);
+
+            if (!response.ok) {
+                throw new Error(`Ошибка сервера: ${response.status}`);
+            }
+
+            const data = await response.json();
+
             const user = data.find(
-                u => u.login === login && u.password.toString() === password
+                (item) =>
+                    item.login === login && item.password.toString() === password.toString()
             );
 
             if (!user) {
-                toast.error('Логин же сырсөз туура эмес');
-                return rejectWithValue('Маалымат туура эмес');
+                toast.error("Неверный логин или пароль");
+                return rejectWithValue("Неверные данные");
             }
 
-            toast.success('Ийгиликтүү кирдиңиз!');
-            localStorage.setItem('admin', 'true');
-            return true;
-        } catch (err) {
-            toast.error('Серверде ката кетти');
-            return rejectWithValue(err.message);
+            localStorage.setItem("admin", "true");
+            localStorage.setItem("adminData", JSON.stringify(user));
+
+            toast.success("Вход выполнен успешно");
+            return user;
+        } catch (error) {
+            toast.error("Ошибка при входе в админку");
+            return rejectWithValue(error.message);
         }
     }
 );
 
-export const outAdmin = createAsyncThunk('admin/logout', async () => {
-    localStorage.removeItem('admin');
-    toast.success('Системадан чыктыңыз');
+export const outAdmin = createAsyncThunk("admin/logout", async () => {
+    localStorage.removeItem("admin");
+    localStorage.removeItem("adminData");
+    toast.success("Вы вышли из системы");
     return false;
 });
 
 const adminSlice = createSlice({
-    name: 'admin',
+    name: "admin",
     initialState: {
-        valid: localStorage.getItem('admin') === 'true',
+        valid: localStorage.getItem("admin") === "true",
+        adminData: localStorage.getItem("adminData")
+            ? JSON.parse(localStorage.getItem("adminData"))
+            : null,
+        loading: false,
+        error: null,
     },
     reducers: {},
-    extraReducers: builder => {
+    extraReducers: (builder) => {
         builder
-            .addCase(loginAdmin.fulfilled, state => {
+            .addCase(loginAdmin.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(loginAdmin.fulfilled, (state, action) => {
+                state.loading = false;
                 state.valid = true;
+                state.adminData = action.payload;
             })
-            .addCase(loginAdmin.rejected, state => {
+            .addCase(loginAdmin.rejected, (state, action) => {
+                state.loading = false;
                 state.valid = false;
+                state.adminData = null;
+                state.error = action.payload;
             })
-            .addCase(outAdmin.fulfilled, state => {
+            .addCase(outAdmin.fulfilled, (state) => {
                 state.valid = false;
+                state.adminData = null;
+                state.error = null;
             });
     },
 });
